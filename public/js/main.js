@@ -20,7 +20,7 @@ function mouseUp () {
 function main() {
 	counter1 = new Counter ("counter1");
 	counter2 = new Counter ("counter2");
-    
+
 	board = new Board ("board");
 	board.reset (8, 8, 8);
 	counter1.setValue (board.getMineCount());
