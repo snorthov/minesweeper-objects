@@ -1,0 +1,8 @@
+{
+	"plugins": {},
+	"libs": ["ecma5"],
+	"ecmaVersion": 5,
+	"loadEagerly": [
+		"public/index.html"
+	]
+}

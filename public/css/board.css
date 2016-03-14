@@ -1,0 +1,64 @@
+.square {
+	width: 18px;
+	height: 18px;
+	background-repeat: no-repeat;
+	background-position: center; 
+	background-image: url("../data/square.jpg");
+}
+
+.empty {
+	background-image: url("../data/empty.jpg");
+}
+
+.mine {
+	background-image: url("../data/mine.gif");
+}
+
+.explosion {
+	background-image: url("../data/explosion.gif");
+}
+
+.mines1 {
+	background-image: url("../data/1mines.gif");
+}
+
+.mines2 {
+	background-image: url("../data/2mines.gif");
+}
+
+.mines3 {
+	background-image: url("../data/3mines.gif");
+}
+
+.mines4 {
+	background-image: url("../data/4mines.gif");
+}
+
+.mines5 {
+	background-image: url("../data/5mines.gif");
+}
+
+.mines6 {
+	background-image: url("../data/6mines.gif");
+}
+
+.mines7 {
+	background-image: url("../data/7mines.gif");
+}
+
+.mines8 {
+	background-image: url("../data/8mines.gif");
+}
+
+.question {
+	background-image: url("../data/question.gif");
+}
+
+.flag {
+	background-image: url("../data/flag.gif");
+}
+
+.wrong {
+	background-image: url("../data/wrong.gif");
+}
+
