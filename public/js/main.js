@@ -1,8 +1,10 @@
+/*eslint-env browser */
 
 var SAD = "data/sad.gif";
 var HAPPY = "data/happy.gif";
 var SMILE = "data/smile.gif";
-var SURPRISE = "data/surprise.gif";
+//var SURPRISE = "data/surprise.gif";
+
 var board, counter1, counter2, button, timerId;
 
 function mouseUp () {
@@ -35,6 +37,6 @@ function main() {
 	var count = 0;
 	if (timerId) window.clearInterval (timerId);
 	timerId = window.setInterval(function () {
-		counter2.setValue (count++)
+		counter2.setValue (count++);
 	}, 1000);
 }

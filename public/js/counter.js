@@ -1,3 +1,4 @@
+/*eslint-env browser */
 
 function Counter (tag) {
 	var value = 0;
@@ -10,11 +11,11 @@ function Counter (tag) {
 		digits[0].src = "data/" + Math.floor(value / 100 % 10) + ".gif";
 		digits[1].src = "data/" + Math.floor(value / 10 % 10) + ".gif";
 		digits[2].src = "data/"+ Math.floor(value % 100 % 10) + ".gif";
-	}
+	};
 	
 	this.getValue = function getValue () {
 		return value;
-	}
+	};
 	
 	function createDigit () {
 		var digit = document.createElement("img");
@@ -23,17 +24,17 @@ function Counter (tag) {
 	}
 	
 	function initCounter () {
-		var parent;
+		var parentElement;
 		if (tag) {
-			parent = document.getElementById (tag);
+			parentElement = document.getElementById (tag);
 		} else {
-			parent = document.getElementsByTagName("body")[0];
+			parentElement = document.getElementsByTagName("body")[0];
 		}
-		while(parent.firstChild) {
-			parent.removeChild(parent.firstChild);
+		while(parentElement.firstChild) {
+			parentElement.removeChild(parentElement.firstChild);
 		}
 		for (var i=0; i<digits.length; i++) {
-			parent.appendChild(digits [i] = createDigit());
+			parentElement.appendChild(digits [i] = createDigit());
 		}
 	}
 }
