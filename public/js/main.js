@@ -18,11 +18,8 @@ function mouseUp () {
 
 //TODO - Rename main() to main2() using 'References' menu
 function main() {
-    
-    /*eslint-disable no-undef */
 	counter1 = new Counter ("counter1");
 	counter2 = new Counter ("counter2");
-    /*eslint-enable no-undef */
     
 	board = new Board ("board");
 	board.reset (8, 8, 8);
