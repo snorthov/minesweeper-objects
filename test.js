@@ -6,8 +6,8 @@ try {
 }
 
 var webdriver = require('selenium-webdriver'),
-    username = process.env.SELENIUM_NAME,
-    accessKey = process.env.SELENIUM_KEY,
+    username = process.env.SAUCE_NAME,
+    accessKey = process.env.SAUCE_KEY,
     driver;
 
 //TODO - Test on more plaforms ...
