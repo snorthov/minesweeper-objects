@@ -13,8 +13,8 @@
     "gulp": "latest",
     "gulp-minifier": "latest",
     "gulp-zip": "latest",
-    "selenium-webdriver": "latest",
-    "saucelabs": "latest",
+    "selenium-webdriver": "2.42.1",
+    "saucelabs": "0.1.1",
     "sonarqube-scanner" : "latest"
   }
 }
