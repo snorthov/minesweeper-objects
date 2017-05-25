@@ -1,13 +1,17 @@
 {
-	"name": "minesweeper-objects",
-	"version": "0.0.1",
-	"description": "A Simple Minesweeper Implementation (with Objects)",
-	"dependencies": {
-		"express": "latest"
-	},
-	"devDependencies": {
-		"gulp": "latest",
-		"gulp-zip": "latest",
-		"gulp-minifier": "latest"
-	}
+  "name": "minesweeper-objects",
+  "version": "0.0.1",
+  "description": "A Simple Minesweeper Implementation (with Objects)",
+  "dependencies": {
+    "dotenv": "^4.0.0",
+    "express": "latest"
+  },
+  "devDependencies": {
+    "gulp": "latest",
+    "gulp-minifier": "latest",
+    "gulp-zip": "latest",
+    "selenium-webdriver": "latest",
+    "saucelabs": "latest",
+    "sonarqube-scanner" : "latest"
+  }
 }
