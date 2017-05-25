@@ -2,6 +2,9 @@
   "name": "minesweeper-objects",
   "version": "0.0.1",
   "description": "A Simple Minesweeper Implementation (with Objects)",
+  "engines": {
+    "node": ">=6.0"
+  },
   "dependencies": {
     "dotenv": "^4.0.0",
     "express": "latest"
