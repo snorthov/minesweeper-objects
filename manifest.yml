@@ -1,6 +1,6 @@
 applications:
 - disk_quota: 1024M
-  host: minesweeper-demo
+  host: minesweeper-objects
   name: minesweeper
   command: node app.js
   path: .
