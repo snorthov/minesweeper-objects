@@ -29,7 +29,6 @@ function main() {
 	button.src = SMILE;
 	
 	//TODO - get rid of local variable count, use getValue()+1 instead
-	//TODO - add .tern-project file to enable cross file navigation
 	//TODO - use Navigation and CodeAssist on counter2
 	var count = 0;
 	if (timerId) window.clearInterval (timerId);
