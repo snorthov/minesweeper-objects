@@ -5,6 +5,10 @@
   "engines": {
     "node": ">=4.0"
   },
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test.js"
+  },
   "dependencies": {
     "dotenv": "^4.0.0",
     "express": "latest"
