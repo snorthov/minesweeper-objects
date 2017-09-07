@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: orioncollab
+spec:
+  type: LoadBalancer
+  selector:
+    run: orion
+  ports:
+  - name: orioncore
+    protocol: TCP
+    port: 8081
+  - name: orioncollab
+    protocol: TCP
+    port: 8082
