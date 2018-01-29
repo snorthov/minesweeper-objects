@@ -16,9 +16,9 @@ driver = new webdriver.Builder().
 		'browserName': 'chrome',
 		'platform': 'Windows 10',
 		'version': '50.0',
-		'username': USER_NAME,
-		'accessKey': ACCESS_KEY,
-		'name': NAME
+		'username': username,
+		'accessKey': accessKey,
+		'name': "Minesweeper"
 	}).
   usingServer("http://" + username + ":" + accessKey +
 			"@ondemand.saucelabs.com:80/wd/hub").
