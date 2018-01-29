@@ -6,22 +6,22 @@ try {
 }
 
 var webdriver = require('selenium-webdriver'),
-    username = process.env.SAUCE_USERNAME,
-    accessKey = process.env.SAUCE_ACCESS_KEY,
-    driver;
+	username = process.env.SAUCE_USERNAME,
+	accessKey = process.env.SAUCE_ACCESS_KEY,
+	driver;
 
 //TODO - Test on more plaforms ...
 driver = new webdriver.Builder().
   withCapabilities({
-    'browserName': 'chrome',
-    'platform': 'Windows XP',
-    'version': '43.0',
-    'username': username,
-    'accessKey': accessKey,
-   	'name': "Minesweeper"
-  }).
+		'browserName': 'chrome',
+		'platform': 'Windows 10',
+		'version': '50.0',
+		'username': USER_NAME,
+		'accessKey': ACCESS_KEY,
+		'name': NAME
+	}).
   usingServer("http://" + username + ":" + accessKey +
-              "@ondemand.saucelabs.com:80/wd/hub").
+			"@ondemand.saucelabs.com:80/wd/hub").
   build();
 
 //TODO - Rewrite to use Mocha ...
@@ -35,17 +35,17 @@ driver.getSession().then(function (session) {
 	driver.get("https://minesweeper-objects.mybluemix.net/");
 	console.log("Starting tests ...");
 	driver.getTitle().then(function (title) {
-	    console.log("title is: " + title);
-	    var passed = title === "Minesweeper";
-	    var done = function () {
+		console.log("title is: " + title);
+		var passed = title === "Minesweeper";
+		 done = function () {
 			console.log("done: " + passed);
 		};
 		//console.log(id);
 		driver.quit();
-	    saucelabs.updateJob(id, {
-	      name: title,
-	      passed: passed
-	    }, done);
+		saucelabs.updateJob(id, {
+			name: title,
+			passed: passed
+		}, done);
 	});
 });
 
