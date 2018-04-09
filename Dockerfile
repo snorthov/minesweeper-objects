@@ -1,6 +1,10 @@
 #FROM node:6.9.2
 FROM mhart/alpine-node:6.9.2
 
+RUN apk update 
+RUN apk upgrade 
+RUN apk add bash
+
 # Configure the app
 ARG APP_NAME=minesweeper
 EXPOSE 3000
