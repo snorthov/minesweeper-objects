@@ -88,3 +88,9 @@ RUN chmod 550 /opt/orion/startup.sh
 VOLUME /home/orion
 COPY supervisord.conf /home/orion
 ENTRYPOINT /opt/orion/startup.sh
+
+#user: orion
+#password: 
+#kubectl get secret $(kubectl get serviceaccount -o jsonpath="{.items[0].secrets[0].name}") -o jsonpath="{.data.token}" | base64 --decode
+
+
