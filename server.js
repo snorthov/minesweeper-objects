@@ -8,7 +8,7 @@ var app = express();
 app.use('/', express.static(__dirname + "/public"));
 
 // Listen for requests on a prort
-var port = process.env.VCAP_APP_PORT || process.env.PORT || process.env.port || 3000;
+var port = process.env.VCAP_APP_PORT || process.env.PORT || process.env.port || 8081;
 app.listen(port, function() {
 	console.log("Server running on port: %d", port);
 });
