@@ -5,7 +5,7 @@
 FROM node:6.9.2
 #FROM mhart/alpine-node:6.9.2
 
-# install bash
+# install bash (needed by some developer tooling)
 # RUN apk update 
 # RUN apk upgrade 
 # RUN apk add bash
