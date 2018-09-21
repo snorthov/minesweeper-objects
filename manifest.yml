@@ -3,7 +3,5 @@ applications:
   host: minesweeper-objects
   name: minesweeper-objects
   command: node server.js
-  path: .
-  domain: mybluemix.net
   instances: 1
   memory: 128M
