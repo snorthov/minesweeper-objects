@@ -1,5 +1,5 @@
-#FROM node:6.9.2
-FROM mhart/alpine-node:6.9.2
+#FROM node:8.12.0
+FROM mhart/alpine-node:8.12.0
 
 # install bash (needed by some developer tooling)
 RUN apk update 
