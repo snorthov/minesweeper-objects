@@ -1,6 +1,7 @@
 node_modules
 minesweeper-objects.zip
 launchConfigurations/
+telepresence.log
 .DS_Store
 .scannerwork/
 .env
