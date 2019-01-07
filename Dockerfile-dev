@@ -25,17 +25,13 @@ RUN npm install
 RUN ls /home/${APP_NAME}
 
 # //TODO - use npm start instead
-CMD node server.js
+#CMD node server.js
 
 
 ## Dockerfile-dev
 # //TODO - generate this file dynamically
 
-RUN apt-get update
-RUN apt-get install -y supervisor
-
 ARG GIT_URL=https://github.com/eclipse/orion.client.git
-
 ENV SHELL /bin/bash
 ENV HELM_HOME /home/orion/.helm
 
@@ -63,9 +59,11 @@ RUN useradd --user-group -G sudo --shell /bin/bash --comment "Orion account" --c
     && runuser -l orion -c "bx plugin install container-registry -r Bluemix -f" \
     && runuser -l orion -c "bx plugin install dev -r Bluemix -f"
 
+# Drop git to this commit (work around bug): e63c9bf4b172a687ffd42ad54fc81ef3a804277a
 RUN cd /root && \
     git clone $GIT_URL && \
     cd /root/orion.client/modules/orionode && \
+    git checkout e63c9bf4b172a687ffd42ad54fc81ef3a804277a && \
     rm -fr ./node_modules && \
     npm install http-proxy node-pty xterm@2.9.0 && \
     npm install --no-optional && \
@@ -86,7 +84,6 @@ RUN chmod 550 /opt/orion/startup.sh
 
 #USER orion
 VOLUME /home/orion
-COPY supervisord.conf /home/orion
 ENTRYPOINT /opt/orion/startup.sh
 
 #user: orion

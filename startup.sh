@@ -27,7 +27,17 @@ kubectl config use-context orion || true
 #helm init --upgrade
 mkdir -p /home/orion/.orion
 cat /run/secrets/kubernetes.io/serviceaccount/token > /home/orion/.orion/.pass || true
-#node server.js -p 8080 -pwd /home/orion/.orion/.pass -w /home/
 
 chown -R orion:orion /home/orion
-supervisord -c /home/orion/supervisord.conf 
+
+# Run the application in the background
+cd /home/minesweeper
+node server.js 3000 &
+
+# Run the development envionment in the background
+cd /opt/orion
+#node server.js --p 8081 --w /home/ &
+node server.js --p 8081 --pwd /home/orion/.orion/.pass --w /home/ &
+
+# Wait forever (keep PID 1 alive so the pod won't get killed)
+tail -f /dev/null

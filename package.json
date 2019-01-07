@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "A Simple Minesweeper Implementation (with Objects)",
   "engines": {
-    "node": ">=4.0"
+    "node": ">=8.0"
   },
   "scripts": {
     "start": "node server.js",
@@ -19,6 +19,6 @@
     "gulp-zip": "latest",
     "selenium-webdriver": "2.42.1",
     "saucelabs": "0.1.1",
-    "sonarqube-scanner" : "latest"
+    "sonarqube-scanner": "latest"
   }
 }
