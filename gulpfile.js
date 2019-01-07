@@ -40,5 +40,5 @@ gulp.task("zip", function() {
 		.pipe(gulp.dest("./"));
 });
  
-gulp.task('default', ['zip']);
+gulp.task('default', gulp.parallel('zip'));
 	
