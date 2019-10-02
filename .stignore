@@ -1,1 +1,12 @@
 node_modules
+minesweeper-objects.zip
+launchConfigurations/
+telepresence.log
+login-iks.sh
+login-az.sh
+z.sh
+z2.sh
+.DS_Store
+.scannerwork/
+.env
+.git/
