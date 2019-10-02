@@ -8,8 +8,8 @@ RUN apk add bash
 
 # Configure the app
 ARG APP_NAME=minesweeper
-EXPOSE 8081
-ENV PORT 8081
+EXPOSE 4000
+ENV PORT 4000
 
 # Set up the application directory
 RUN mkdir -p /home/${APP_NAME}

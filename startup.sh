@@ -13,7 +13,7 @@ fi
 
 #Enable proxy port
 sed -i -e '/orion.proxy.port=/d' /opt/orion/orion.conf
-echo "orion.proxy.port=3000" >> /opt/orion/orion.conf
+echo "orion.proxy.port=4000" >> /opt/orion/orion.conf
 sed -i -e '/orion.context.listenPath=false/d' /opt/orion/orion.conf
 echo "orion.context.listenPath=true" >> /opt/orion/orion.conf
 sed -i -e '/orion.context.path=/d' /opt/orion/orion.conf
@@ -32,7 +32,7 @@ chown -R orion:orion /home/orion
 
 # Run the application in the background
 cd /home/minesweeper
-node server.js 3000 &
+node server.js 4000 &
 
 # Run the development envionment in the background
 cd /opt/orion
