@@ -8,12 +8,12 @@ var app = express();
 app.use('/', express.static(__dirname + "/public"));
 
 // Simple status end point
-app.use('/status', function (req, res, next) {
+app.use('/status', function (_req, res, _next) {
 	res.status(200).json({hostname: process.env.HOSTNAME, status: 'UP'});
 });
 
 // Listen for requests on a port
-var port = process.argv[2] || process.env.PORT || process.env.port || process.env.VCAP_APP_PORT || 4000;
+var port = parseInt(process.argv[2], 10) || process.env.PORT || process.env.port || process.env.VCAP_APP_PORT || 4000;
 var server = app.listen(port, function() {
 	var address = server.address()
 	console.log("Server running on port: %d", address.port);
