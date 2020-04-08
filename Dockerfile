@@ -1,10 +1,10 @@
-#FROM node:8.12.0
-FROM mhart/alpine-node:8.12.0
+FROM node:10.19.0
+#FROM mhart/alpine-node:10.19.0
 
 # install bash (needed by some developer tooling)
-RUN apk update 
-RUN apk upgrade 
-RUN apk add bash
+# RUN apk update 
+# RUN apk upgrade 
+# RUN apk add bash
 
 # Configure the app
 ARG APP_NAME=minesweeper

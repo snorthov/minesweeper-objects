@@ -2,8 +2,8 @@
 # //TODO - don't copy Dockerfile
 # FROM minesweeper:latest
 
-FROM node:8.12.0
-#FROM mhart/alpine-node:8.12.0
+FROM node:10.19.0
+#FROM mhart/alpine-node:10.19.0
 
 # install bash (needed by some developer tooling)
 # RUN apk update 
