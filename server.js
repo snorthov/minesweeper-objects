@@ -7,18 +7,19 @@ var app = express();
 // Set up a simple static server for the public directory
 app.use('/', express.static(__dirname + "/public"));
 
+// Simple status end point
+app.use('/status', function (_req, res, _next) {
+	res.status(200).json({hostname: process.env.HOSTNAME, status: 'UP'});
+});
+
 // Simple liveness end point
 app.use('/liveness', function (_req, res, _next) {
-    res.status(200).json({hostname: process.env.HOSTNAME, status: "LIVE"});
+	res.status(200).json({hostname: process.env.HOSTNAME, status: "LIVE"});
 });
 
 // Simple readiness end point
 app.use('/readiness', function (_req, res, _next) {
 	res.status(200).json({hostname: process.env.HOSTNAME, status: "READY"});
-});
-// Simple status end point
-app.use('/status', function (_req, res, _next) {
-	res.status(200).json({hostname: process.env.HOSTNAME, status: 'UP'});
 });
 
 // Listen for requests on a port
