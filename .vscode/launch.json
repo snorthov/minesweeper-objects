@@ -10,6 +10,19 @@
             "name": "Launch local Node.js (4000)",
             "program": "${workspaceFolder}/server.js",
             "args": ["4000"],
+            // "envFile": "${workspaceFolder}/.env",
+            // "cwd": "${workspaceFolder}",
+            // "env": {},
+            // "internalConsoleOptions": "neverOpen",
+            // "postDebugTask": "",
+            // "preLaunchTask": "",
+            // "restart": false,
+            // "runtimeArgs": [],
+            // "runtimeExecutable": "node",
+            // "serverReadyAction":{
+            //     "action": "openExternally"
+            // },
+            // "stopOnEntry": true,
             "auto": false
         },
         {
@@ -18,8 +31,9 @@
             "name": "Attach to local Nodes.js (9229)",
             "address": "127.0.0.1",
             "port": 9229,
+            //"processId": "${command:PickProcess}",
             "localRoot": "${workspaceFolder}",
-            "remoteRoot": "${workspaceFolder}",
+            "remoteRoot": "${workspaceFolder}"
         },
         {
             "type": "node",

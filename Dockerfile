@@ -1,4 +1,5 @@
-FROM node:10.19.0
+FROM node:12.16.1
+#FROM node:10.19.0
 #FROM mhart/alpine-node:10.19.0
 
 # install bash (needed by some developer tooling)
