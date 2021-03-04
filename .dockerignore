@@ -1,6 +1,9 @@
 node_modules
 minesweeper-objects.zip
 launchConfigurations/
+unused-*/
+junk*
+build.sh
 telepresence.log
 login-iks.sh
 login-az.sh
