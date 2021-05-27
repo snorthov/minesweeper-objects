@@ -23,7 +23,7 @@
             //     "action": "openExternally"
             // },
             // "stopOnEntry": true,
-            "auto": false
+            // "auto": false
         },
         {
             "type": "node",
