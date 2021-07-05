@@ -5,26 +5,30 @@
 set -euo pipefail
 
 MINIKUBE=false
+STEPS=0
 
-# //TODO - wait better (waits forever in rollout status loop)
+# //TODO - wait better (waits forever in rollout status loop ... but tells the user)
+# //TODO - fix or remove Ingress code
+# //TODO - first clone includes a changed start command (might not succeed - do start command only if "-i none")
 
-# //TODO - ensure that the original deployment is running and healthy
-# //TODO - give useful information when the debug pod won't start ()
-# //TODO - give useful information when the debugger image takes log to load
-
-# //TODO - look for command from deployment yaml before exec'ing into container
+# //TODO - ensure that the original deployment is running and healthy before attempting to debug
+# //TODO - give useful information when the debug pod won't start (show logs, start command failing etc.)
+# //TODO - give useful information when the debugger image takes too long to load
+#
+# //TODO - look for command from deployment yaml first before exec'ing into container to find it (yaml is better)
 #
 # //TODO - different deplopyment not tested
-# //TODO - resolve theia Node 10 vs Node 12 issues (theia only runs on 10)
 # //TODO - replace "debug: true" label with an annotation (or another label)
-# //TODO - ensure that replaced startup command is working before deleting livenessProbe (currently pods are green)
-# //TODO - hard coded /etc/container, /etc/container/setup.sh
-# //TODO - assumes the current namespace (take parameter?  warn?)
-# //TODO - script hammers the Ingress (copy old so it can be restored?)
+# //TODO - ensure that replaced startup command is working before deleting livenessProbe
+# //TODO - hard coded /etc/container in clone_deployment() (use the declared constant)
+# //TODO - we assume the current namespace (take a parameter?  warn?)
 
 # //TODO - get official debugger icon
-# //TODO - get rid of this "/home/node" default
-# //TODO - ret rid of DEPLOY_DEBUGGER
+# //TODO - implement icon for port-forward usage
+# //TODO - ret rid of DEPLOY_DEBUGGER global variable hack
+
+# //TODO - Ingress likely no longer working (untested, changes to IBM Cloud annotations)
+# //TODO - script hammers the Ingress (copy old so it can be restored?)
 
 # //TODO - investigate Service sessionAffinity: ClientIP to make requests go to the same pod
 # //TODO - restartPolicy: Never #FIXME - investigate whether this could be used instead of hacking args
@@ -39,7 +43,7 @@ usage () {
     echo "kube-debug - Debug a running Kubernetes deployment"
     echo ""
     echo "Usage:"
-    echo "kube-debug [-f <config file>] [-s <service>] [-c <container>] [-i image] [-z <cmd>] [-p port] <deployment>"
+    echo "kube-debug [-f <config file>] [-d <deployment>] [-s <service>] [-c <container>] [-i image] [-z <cmd>] [-p port] <deployment>"
     echo ""
     echo "Where <deployment> is the name of a running Kubernetes deployment"
     echo 
@@ -49,9 +53,10 @@ usage () {
     echo "                      looking for defaults and making educated guesses (that can"
     echo "                      sometimes turn out to be wrong)."
     echo
+    echo " -d <deployment>      The <deployment> to debug"
     echo " -s <service>         The service that exposes <deployment> endpoints to debug"
-    echo " -c <container>       The name of the container inside the pod to be debugged"
-    echo " -i <image>           The Docker image for the debugger to run in the pod"
+    echo " -c <container>       The name of the container inside the pod to debug"
+    echo " -i <image>           The debugger image (see https://hub.docker.com/u/theiaide)"
     echo "                          theiaide/theia:1.0.0        (Node, the default)"
     echo "                          theiaide/theia-python:1.0.0 (Python)"
     echo "                          theiaide/theia-full:1.0.0   (multiple languages, slow to load)"
@@ -138,6 +143,18 @@ cleanup () {
     quit 0
 }
 
+# Process the config file
+run_config_file () {
+    if [ ! -z "${CONFIG_FILE:-}" ] ; then
+        if [ ! -f "$CONFIG_FILE" ] ; then
+            stderr "Error: $CONFIG_FILE was specified but does not exist (or is not a file)"
+            quit 1
+        fi
+        # Source the config file to override debugger variables
+        . "$CONFIG_FILE"
+    fi
+}
+
 ############ Process the command line   ##############
 
 # Process command line options (make the last one $1) and exit on error
@@ -145,11 +162,14 @@ if [ $# -eq 0 ] ; then
     usage 
     quit 0 
 fi
-while getopts c:i:f:p:s:z: OPT ; do
+while getopts d:c:i:f:p:s:z: OPT ; do
     case "${OPT}" in
+        d) DEPLOYMENT_NAME=${OPTARG};;
         c) CONTAINER_NAME=${OPTARG};;
         i) DEBUGGER_IMAGE=${OPTARG};;
-        f) CONFIG_FILE=${OPTARG};;
+        f) CONFIG_FILE=${OPTARG}
+            run_config_file
+            ;;
         p) DEBUGGER_PORT=${OPTARG};;
         s) SERVICE_NAME=${OPTARG};;
         z) CONTAINER_COMMAND_AND_ARGS=${OPTARG};;
@@ -157,15 +177,18 @@ while getopts c:i:f:p:s:z: OPT ; do
     esac
 done
 shift $((OPTIND-1)) 
-if [ $# -ne 1 ] && [ -z "${CONFIG_FILE:-}" ]; then 
-    # echo "CONTAINER_COMMAND_AND_ARGS=${CONTAINER_COMMAND_AND_ARGS:-}"
-    stderr "Error: Missing deployment name or config file."; 
-    # usage 
-    quit 0 
+
+if [ $# -ne 1 ]; then
+    if [[ -z "${DEPLOYMENT_NAME:-}" && -z "${CONFIG_FILE:-}" ]]; then 
+        # echo "CONTAINER_COMMAND_AND_ARGS=${CONTAINER_COMMAND_AND_ARGS:-}"
+        stderr "Error: Missing deployment name or config file."; 
+        # usage 
+        quit 0
+    fi
 fi
 
-# The DEPLOYMENT_NAME is the first argument after options (or is defined in the config file)
-DEPLOYMENT_NAME=${1:-} 
+# The DEPLOYMENT_NAME is the first argument after options, defined by -d or defined in the config file
+DEPLOYMENT_NAME=${DEPLOYMENT_NAME:-${1:-}}
 
 ############ Configure the Deployment ##############
 
@@ -182,30 +205,34 @@ DEPLOYMENT_NAME=${1:-}
 # MINIKUBE=true
 
 configure_deployment () {
-    # Process the config file
-    if [ ! -z "${CONFIG_FILE:-}" ] ; then
-        if [ ! -f "$CONFIG_FILE" ]; then
-            stderr "Error: $CONFIG_FILE was specified but does not exist (or is not a file)"
-            quit 1
-        fi
-        # Source the config file to override debugger variables
-        . "$CONFIG_FILE"
-    fi
-
     # Get the DEPLOYMENT_NAME, SERVICE_NAME and CONTAINER_NAME parameters
     if [ -z "${DEPLOYMENT_NAME:-}" ] ; then
         stderr "Error: DEPLOYMENT_NAME is not set. Nothing to debug"
         quit 1
     fi
 
+    if kubectl get deployment "$DEPLOYMENT_NAME" &> /dev/null ; then
+        :
+    else
+        stderr "Error: deployment \"$DEPLOYMENT_NAME\" does not exist. Nothing to debug"
+        quit 1
+    fi
+
     if [ -z "${SERVICE_NAME:-}" ] ; then 
-      if kubectl get service "$DEPLOYMENT_NAME" &> /dev/null ; then
-        SERVICE_NAME=${SERVICE_NAME:-$DEPLOYMENT_NAME}
-      else
-        echo "*** Warning: No service associated with the deployment."
-        echo "Use -s to specify the service (or debugger will likely fail)"
-        SERVICE_NAME=
-      fi
+        if kubectl get service "$DEPLOYMENT_NAME" &> /dev/null ; then
+          SERVICE_NAME=${SERVICE_NAME:-$DEPLOYMENT_NAME}
+        else
+          echo "*** Warning: No service associated with the deployment."
+          echo "Use -s to specify the service (or debugger will likely fail)"
+          SERVICE_NAME=
+        fi
+    else
+        if kubectl get service "$SERVICE_NAME" &> /dev/null ; then
+        :
+        else
+            stderr "Error: service \"$SERVICE_NAME\" does not exist. Can't debug"
+            quit 1
+        fi
     fi
 
     CONTAINER_NAME=${CONTAINER_NAME:-$DEPLOYMENT_NAME}
@@ -217,7 +244,9 @@ configure_deployment () {
 compute_variables () {
     # 0. Compute debugger variables using the running deployment
     echo
-    echo "0 - Computing debugger variables ..."
+    echo "$STEPS - Computing debugger variables ..."
+    ((STEPS++))
+
     # Get the CONTAINER_HOME, CONTAINER_COMMAND_AND_ARGS and CONTAINER_INDEX parameters
     if [[ -z "${CONTAINER_HOME:-}" || -z "${CONTAINER_COMMAND_AND_ARGS:-}" || -z "${CONTAINER_INDEX:-}" ]]; then
 
@@ -316,9 +345,14 @@ configure_debugger () {
 clone_deployment () {
     # 1. Clone the Deployment into a debug version and add volume and volumeMount for shared data
     echo 
-    echo "1 - Clone the Deployment"
+    echo "$STEPS - Clone the Deployment"
+    ((STEPS++))
+
     kubectl get deployment $DEPLOYMENT_NAME -o json | \
       jq ".metadata.name = \"$DEPLOYMENT_NAME-debug\" | .metadata.labels.name = \"$DEPLOYMENT_NAME-debug\" | .spec.replicas = 1" | \
+      jq ".spec.template.metadata.labels += {\"debug\":\"true\"}" | \
+      jq ".spec.template.spec.containers[$CONTAINER_INDEX].command = [\"/bin/sh\"]" | \
+      jq ".spec.template.spec.containers[$CONTAINER_INDEX].args = [\"-c\", \"{ $CONTAINER_COMMAND_AND_ARGS & } && tail -f /dev/null\"]" | \
       jq ".spec.template.spec.volumes += [{\"name\":\"container\", \"emptyDir\": {}}]" | \
       jq ".spec.template.spec.containers[$CONTAINER_INDEX].volumeMounts += [{\"name\":\"container\", \"mountPath\":\"/etc/container\"}]" | \
         kubectl apply -f -
@@ -327,7 +361,8 @@ clone_deployment () {
 add_debugger () {
     # 2. Add the debugger, scale down replicas, patch the start command and set other debugger properties
     echo
-    echo "2 - Add the Debugger"
+    echo "$STEPS - Add the Debugger"
+    ((STEPS++))
 
     # Get the environment variables and the volumes used by the container
     CONTAINER_ENV=$(kubectl get deployment $DEPLOYMENT_NAME-debug -o json | jq ".spec.template.spec.containers[$CONTAINER_INDEX].env")
@@ -383,9 +418,11 @@ EOF
 }
 
 remove_liveness () {
-    # 3. Remove the livenessProbe (stops the Pod from begin restarted when the debugger is stopped at a breakpoint)
+    # 3. Remove the livenessProbe (stops the pod from begin restarted when the debugger is stopped at a breakpoint)
     echo 
-    echo "3 - Remove livenessProbe"
+    echo "$STEPS - Remove livenessProbe"
+    ((STEPS++))
+
     kubectl patch deployment $DEPLOYMENT_NAME-debug --type json -p="[{'op': 'remove', 'path': \"/spec/template/spec/containers/${CONTAINER_INDEX}/livenessProbe\"}]"
 
     # 3a. Remove the readinessProbe (not necessary, readiness is used to keep traffic away when the debugger is halted)
@@ -396,7 +433,9 @@ remove_liveness () {
 create_debugger_service () {
     # 4. Create the debugger service (copy the service for the deployment, remove transient fields)
     echo 
-    echo "4 - Create the Debugger service"
+    echo "$STEPS - Create the Debugger service"
+    ((STEPS++))
+
     if [ ! -z "${SERVICE_NAME:-}" ] ; then 
       kubectl get service $SERVICE_NAME -o json | \
         jq "del(.spec.ports[0].nodePort) | del(.spec.clusterIP) | .metadata.name=\"$DEPLOYMENT_NAME-debug\" | .spec.ports |= .+ [{\"name\": \"$DEBUGGER_NAME\", \"port\": $DEBUGGER_PORT, \"targetPort\": $DEBUGGER_PORT}]" | \
@@ -446,7 +485,9 @@ show_logs () {
 wait_for_debugger () {
     # 5. Wait for the Debugger to be ready
     echo 
-    echo "5 - Wait for the Debugger to be ready"
+    echo "$STEPS - Wait for the Debugger to be ready"
+    ((STEPS++))
+
     local count=0
     while true ; do
         # --field-selector=status.phase=Running is broken.  See: https://github.com/kubernetes/kubectl/issues/450
@@ -462,10 +503,10 @@ wait_for_debugger () {
             # //TODO - fix this code, it's a mess ... refactor ... find a better way ...
             set +euo pipefail
             local old_trap=$(trap -p INT)
-            trap "show_logs 'Show container logs for $CONTAINER_NAME?.'" INT
+            trap "show_logs 'Show container logs for $CONTAINER_NAME?'" INT
             # kubectl wait --for=condition=complete job/myjob
             echo
-            echo "Waiting forever for state change.  Hit ^C to break ..."
+            echo "Waiting forever for debugger state change.  Hit ^C to break ..."
             kubectl get pod -l debug=true -w
             # echo "old_trap=$old_trap"
             trap "$old_trap" INT
@@ -484,8 +525,10 @@ wait_for_debugger () {
 open_debugger () {
     # 6. Open a browser on the debug port
     echo 
-    echo "6 - Open the Debugger"
-    { sleep 5; open "http://localhost:$DEBUGGER_PORT"; } &
+    echo "$STEPS - Open the Debugger"
+   ((STEPS++))
+
+    { sleep 7; open "http://localhost:$DEBUGGER_PORT"; } &
 }
 
 port_forward () {
@@ -498,6 +541,7 @@ port_forward () {
     kubectl port-forward $POD_NAME $DEBUGGER_PORT:$DEBUGGER_PORT
 }
 
+# //TODO - no longer used
 install_ingress () {
     # INGRESS_NAME=minesweeper
     # INGRESS_RULES_INDEX=0 # 0 - indicates the first path for the debugger to attach
@@ -592,12 +636,16 @@ EOF
 }
 
 main () {
+
+    # Install the debugger
     configure_deployment
     compute_variables 
     configure_debugger
     if [ $DEPLOY_DEBUGGER = true ] ; then
         clone_deployment
-        add_debugger
+        if [ $DEBUGGER_IMAGE != "none" ] ; then
+            add_debugger
+        fi
         remove_liveness
         create_debugger_service
     fi
@@ -613,11 +661,18 @@ main () {
     #     exit 0
     # fi
 
+    # Ensure that the debugger is running
     trap 'cleanup "Debugger is installing."' INT
     wait_for_debugger
-    open_debugger
+    if [ $DEBUGGER_IMAGE != "none" ] ; then
+        open_debugger
+    fi
     trap 'cleanup "Debugger is running."' INT
-    port_forward
+
+    # Port forward to the debugger
+    if [ $DEBUGGER_IMAGE != "none" ] ; then
+        port_forward
+    fi
 }
 
 main
