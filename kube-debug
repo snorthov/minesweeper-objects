@@ -250,12 +250,16 @@ compute_variables () {
     # Get the CONTAINER_HOME, CONTAINER_COMMAND_AND_ARGS and CONTAINER_INDEX parameters
     if [[ -z "${CONTAINER_HOME:-}" || -z "${CONTAINER_COMMAND_AND_ARGS:-}" || -z "${CONTAINER_INDEX:-}" ]]; then
 
+        # Get the first Running pod in the container (relies on selfLink, removed in Kubernetes 1.20)
+        #selfLink=$(kubectl get deployment.apps "${DEPLOYMENT_NAME}" -o jsonpath={.metadata.selfLink})
+        #selector=$(kubectl get --raw "${selfLink}/scale" | jq -r .status.selector)
+        ##POD_NAME=$(kubectl get pods --selector "${selector}" -o name | head -1 | cut -c 5-)
+        #POD_NAME=$(kubectl get pod --selector "${selector}" | awk -F' *|/' '$2 == $3 && $4 == "Running"' | head -1 | cut -d' ' -f1)
+        #echo "POD_NAME=$POD_NAME"
+
         # Get the first Running pod in the container
-        selfLink=$(kubectl get deployment.apps "${DEPLOYMENT_NAME}" -o jsonpath={.metadata.selfLink})
-        selector=$(kubectl get --raw "${selfLink}/scale" | jq -r .status.selector)
-        #POD_NAME=$(kubectl get pods --selector "${selector}" -o name | head -1 | cut -c 5-)
-        POD_NAME=$(kubectl get pod --selector "${selector}" | awk -F' *|/' '$2 == $3 && $4 == "Running"' | head -1 | cut -d' ' -f1)
-        # echo "POD_NAME=$POD_NAME"
+        POD_NAME=$(kubectl get pods | grep "$DEPLOYMENT_NAME" | awk -F' *|/' '$2 == $3 && $4 == "Running"' | head -1 | cut -d' ' -f1)
+        #echo "POD_NAME=$POD_NAME"
 
         # Get the home directory for the container (guess the cwd of process 1)
         if [ -z "${CONTAINER_HOME:-}" ]; then
@@ -318,13 +322,18 @@ configure_debugger () {
     DEBUGGER_SETUP="/etc/container/setup.sh"
     DEBUGGER_COPY="cp -R /proc/\$PID/root$CONTAINER_HOME/. $DEBUGGER_HOME"
     DEBUGGER_ENV="eval \$(cat /proc/\$PID/environ | tr '\\\\n' ' ' | { while IFS= read -d '' -r line ; do var=\\\"\$( cut -d '=' -f 1 <<< \\\"\$line\\\" )\\\" ; val=\\\"\$( cut -d '=' -f 2- <<< \\\"\$line\\\" )\\\" ; printf \\\"export %s=%q\\\n\\\" \\\"\$var\\\" \\\"\$val\\\" ; done })"
-    DEBUGGER_START="mkdir -p $CONTAINER_HOME; until [ -f $DEBUGGER_SETUP ] ; do sleep 5 ; done ; . $DEBUGGER_SETUP ; $DEBUGGER_ENV"
+    DEBUGGER_INIT="mkdir -p $CONTAINER_HOME; until [ -f $DEBUGGER_SETUP ] ; do sleep 5 ; done ; . $DEBUGGER_SETUP ; $DEBUGGER_ENV"
 
     DEBUGGER_NAME=${DEBUGGER_NAME:-"theia"}
-    DEBUGGER_IMAGE=${DEBUGGER_IMAGE:-"theiaide/theia:1.0.0"} #"theiaide/theia-python:1.0.0" # "theiaide/theia-full:1.0.0" # theiaide/theia:latest
+    DEBUGGER_IMAGE_NAME="snorthov/theia:latest" #"theiaide/theia:1.0.0" #"theiaide/theia-python:1.0.0" # "theiaide/theia-full:1.0.0" # theiaide/theia:latest
+    DEBUGGER_IMAGE=${DEBUGGER_IMAGE:-$DEBUGGER_IMAGE_NAME} 
     DEBUGGER_PORT=${DEBUGGER_PORT:-3000}
+    DEBUGGER_CD="cd /home/theia/examples/browser"
+    DEBUGGER_START="yarn run start $CONTAINER_HOME --hostname 0.0.0.0 --port $DEBUGGER_PORT"
+    
     DEBUGGER_COMMAND="['/bin/bash']"
-    DEBUGGER_ARGS="[\"-c\", \"export PS1=\\\"\\\\h\$ \\\"; $DEBUGGER_START ; node /home/theia/src-gen/backend/main.js $CONTAINER_HOME --port $DEBUGGER_PORT --hostname=0.0.0.0\"]"
+#    DEBUGGER_ARGS="[\"-c\", \"export PS1=\\\"\\\\h\$ \\\"; $DEBUGGER_INIT ; node /home/theia/src-gen/backend/main.js $CONTAINER_HOME --port $DEBUGGER_PORT --hostname=0.0.0.0\"]"
+    DEBUGGER_ARGS="[\"-c\", \"export PS1=\\\"\\\\h\$ \\\"; $DEBUGGER_INIT ; $DEBUGGER_CD ; $DEBUGGER_START\"]"
     DEBUGGER_USER=0 # run as root
     DEBUGGER_PULL_POLICY=Always
     DEBUGGER_ICON="https://cdn2.iconfinder.com/data/icons/security-2-1/512/debugger-512.png"
@@ -438,7 +447,7 @@ create_debugger_service () {
 
     if [ ! -z "${SERVICE_NAME:-}" ] ; then 
       kubectl get service $SERVICE_NAME -o json | \
-        jq "del(.spec.ports[0].nodePort) | del(.spec.clusterIP) | .metadata.name=\"$DEPLOYMENT_NAME-debug\" | .spec.ports |= .+ [{\"name\": \"$DEBUGGER_NAME\", \"port\": $DEBUGGER_PORT, \"targetPort\": $DEBUGGER_PORT}]" | \
+        jq "del(.spec.ports[0].nodePort) | del(.spec.clusterIP) | del(.spec.clusterIPs) | .metadata.name=\"$DEPLOYMENT_NAME-debug\" | .spec.ports |= .+ [{\"name\": \"$DEBUGGER_NAME\", \"port\": $DEBUGGER_PORT, \"targetPort\": $DEBUGGER_PORT}]" | \
         kubectl apply -f -
     fi
     # 4. Create the debugger service (not used -- relies on the selector 'name')
