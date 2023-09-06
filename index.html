@@ -1,3 +1,23 @@
-<h1>Minesweeper</h1>
-<img src="public/data/0.gif">
-<h2>Minesweeper Test</h2>
+<html>
+<head>
+	<title>Minesweeper</title>
+	<link rel="icon" href="public/data/mine.gif">
+	<link rel="stylesheet" type="text/css" href="public/css/board.css" />
+	<script src="public/js/main.js"></script>
+	<script src="public/js/counter.js"></script>
+	<script src="public/js/board.js"></script>
+</head>
+
+<body onload="main()">
+<table onmouseup="mouseUp()">
+	<tr align="center">
+		<td><div id="counter1"></div></td>
+		<td><button onClick="main()"><img id="button" src="public/data/smile.gif"></button></td>
+		<td><div id="counter2"></div></td>
+	</tr>
+	<tr>
+		<td colspan="3"><div id="board"</div></td>
+	</tr>
+</table>
+</body>
+</html>
