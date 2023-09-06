@@ -1,9 +1,11 @@
 /*eslint-env browser */
 
-var SAD = "data/sad.gif";
-var HAPPY = "data/happy.gif";
-var SMILE = "data/smile.gif";
-//var SURPRISE = "data/surprise.gif";
+var PATH = (window.BASE || "") + "data/";
+
+var SAD = PATH + "sad.gif";
+var HAPPY = PATH + "happy.gif";
+var SMILE = PATH + "smile.gif";
+//var SURPRISE = PATH + "surprise.gif";
 
 var board, counter1, counter2, button, timerId;
 
